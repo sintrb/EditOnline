@@ -12,8 +12,6 @@ and HEAD requests in a fairly straightforward manner.
 
 __version__ = "0.1"
 
-__all__ = ["SimpleHTTPRequestHandler"]
-
 import os
 import posixpath
 import BaseHTTPServer
@@ -45,7 +43,8 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		length = int(self.headers.getheader('content-length'))
 		body = self.rfile.read(length)
 		path = self.translate_path(self.path)
-		
+		if not os.path.exists(os.path.dirname(path)):
+			os.makedirs(os.path.dirname(path))
 		try:
 			with open(path, 'wb') as f:
 				f.write(body)
@@ -71,21 +70,10 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self.path = self.path.replace('..', '')
 		path = self.translate_path(self.path)
 		f = None
-		if os.path.isdir(path):
-			parts = urlparse.urlsplit(self.path)
-			if not parts.path.endswith('/'):
-				# redirect browser - doing basically what apache does
-				self.send_response(301)
-				new_parts = (parts[0], parts[1], parts[2] + '/',
-							 parts[3], parts[4])
-				new_url = urlparse.urlunsplit(new_parts)
-				self.send_header("Location", new_url)
-				self.end_headers()
-				return None
-			else:
-				return self.list_directory(path)
-		elif self.path.startswith('/static/'):
+		# print self.path
+		if self.path.startswith('/eo.static/'):
 			# static
+			path = os.path.join(libdir, self.path.replace('/eo.static/', 'static/'))
 			ctype = self.guess_type(path)
 			try:
 				# Always read in binary mode. Opening files in text mode may cause
@@ -106,13 +94,31 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			except:
 				f.close()
 				raise
+		elif os.path.isdir(path):
+			parts = urlparse.urlsplit(self.path)
+			if not parts.path.endswith('/'):
+				# redirect browser - doing basically what apache does
+				self.send_response(301)
+				new_parts = (parts[0], parts[1], parts[2] + '/',
+							 parts[3], parts[4])
+				new_url = urlparse.urlunsplit(new_parts)
+				self.send_header("Location", new_url)
+				self.end_headers()
+				return None
+			else:
+				return self.list_directory(path)
 		else:
 			try:
 				res = ''.join(open(os.path.join(libdir, 'editor.html')).readlines())
-				
+				source = ''
+				try:
+					source = ''.join(open(path, 'rb').readlines())
+				except:
+					pass
 				cxt = {
-					'source':''.join(open(path, 'rb').readlines()),
+					'source':source,
 					'path':self.path,
+					'version':__version__
 					}
 				
 				for k, v in cxt.items():
@@ -161,8 +167,8 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			if os.path.islink(fullname):
 				displayname = name + "@"
 				# Note: a link to a directory displays with @ and links with /
-			f.write('<li><a href="%s">%s</a>\n'
-					% (urllib.quote(linkname), cgi.escape(displayname)))
+			f.write('<li><a href="%s"%s>%s</a>\n'
+					% (urllib.quote(linkname), '' if os.path.isdir(fullname) else ' target="_blank"', cgi.escape(displayname)))
 		f.write("</ul>\n<hr>\n</body>\n</html>\n")
 		length = f.tell()
 		f.seek(0)

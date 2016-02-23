@@ -27,12 +27,14 @@
       z-index: 1000;
       background: white;
       opacity: 0.9;
-      display: none;
+      /*display: none;*/
     }
     .doingtext{
       margin: 100px auto; text-align: center;
-      width: 250px;
-      line-height: 100px;
+      width: 400px;
+      padding: 5px;
+      line-height: 40px;
+      vertical-align: middle;
       border-radius: 20px;
       font-size: 20px;
       background:#00FF85;
@@ -43,18 +45,35 @@
   <pre id="editor">{{source}}</pre>
   <div id="doing">
     <div style="" class="doingtext">
+      EditOnline {{version}}
+      <br/>
+      Press Ctrl+S To Save File.
+      <br/>
+      <div style="text-align:right; padding-right:20px;">
+        <!-- <a href="javascript:done();">Don't Display</a> -->
+        <a href="javascript:done();">Close</a>
+      </div>
     </div>
   </div>
-<script src="/static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="/static/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
+  var mimemap = {
+    js:'javascript',
+    html:'html',
+    py:'python',
+    json:'json',
+  };
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/twilight");
   $(function(){
     var mode = "ace/mode/text";
     var ix = window.location.pathname.lastIndexOf('.');
     if(ix>0){
-
+      var suf = window.location.pathname.substr(ix+1);
+      if(mimemap[suf]){
+        mode = "ace/mode/"+mimemap[suf];
+      }
     }
 
     editor.session.setMode(mode);
@@ -87,8 +106,8 @@
         setTimeout(done, 1500);
       },
       error:function(r){
-        alert("save failed!");
-        done();
+        doing("save failed!");
+        setTimeout(done, 3000);
       }
     })
   }
