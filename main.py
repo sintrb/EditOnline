@@ -40,9 +40,11 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				f.close()
 
 	def do_POST(self):
+		self.path = self.path.replace('..', '')
+
 		length = int(self.headers.getheader('content-length'))
 		body = self.rfile.read(length)
-		path = self.translate_path(self.path)
+		path = self.translate_path(self.path).replace('~editor','')
 		if not os.path.exists(os.path.dirname(path)):
 			os.makedirs(os.path.dirname(path))
 		try:
@@ -71,9 +73,50 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		path = self.translate_path(self.path)
 		f = None
 		# print self.path
-		if self.path.startswith('/eo.static/'):
-			# static
-			path = os.path.join(libdir, self.path.replace('/eo.static/', 'static/'))
+		if self.path.endswith('~editor'):
+			try:
+				res = ''.join(open(os.path.join(libdir, 'editor.html')).readlines())
+				cxt = {
+					'path':self.path,
+					'version':__version__,
+					'exists':'true' if os.path.exists(self.translate_path(self.path.replace('~editor',''))) else 'false',
+					}
+				
+				for k, v in cxt.items():
+					res = res.replace('{{%s}}' % k, v)
+
+				f = StringIO()
+				f.write(res)
+				
+				self.send_response(200)
+				self.send_header("Content-type", 'text/html')
+				self.send_header("Content-Length", str(f.tell()))
+				self.end_headers()
+				f.seek(0)
+				return f
+			except IOError:
+				self.send_error(404, "File not found")
+				return None
+		elif os.path.isdir(path):
+			parts = urlparse.urlsplit(self.path)
+			if not parts.path.endswith('/'):
+				# redirect browser - doing basically what apache does
+				self.send_response(301)
+				new_parts = (parts[0], parts[1], parts[2] + '/',
+							 parts[3], parts[4])
+				new_url = urlparse.urlunsplit(new_parts)
+				self.send_header("Location", new_url)
+				self.end_headers()
+				return None
+			else:
+				return self.list_directory(path)
+		else:
+			path = self.path
+			if path.startswith('/eo.static/'):
+				# static
+				path = os.path.join(libdir, path.replace('/eo.static/', 'static/'))
+			else:
+				path = self.translate_path(path)
 			ctype = self.guess_type(path)
 			try:
 				# Always read in binary mode. Opening files in text mode may cause
@@ -94,63 +137,14 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			except:
 				f.close()
 				raise
-		elif os.path.isdir(path):
-			parts = urlparse.urlsplit(self.path)
-			if not parts.path.endswith('/'):
-				# redirect browser - doing basically what apache does
-				self.send_response(301)
-				new_parts = (parts[0], parts[1], parts[2] + '/',
-							 parts[3], parts[4])
-				new_url = urlparse.urlunsplit(new_parts)
-				self.send_header("Location", new_url)
-				self.end_headers()
-				return None
-			else:
-				return self.list_directory(path)
-		else:
-			try:
-				res = ''.join(open(os.path.join(libdir, 'editor.html')).readlines())
-				source = ''
-				try:
-					source = ''.join(open(path, 'rb').readlines())
-				except:
-					pass
-				cxt = {
-					'source':source,
-					'path':self.path,
-					'version':__version__
-					}
-				
-				for k, v in cxt.items():
-					res = res.replace('{{%s}}' % k, v)
-
-				f = StringIO()
-				f.write(res)
-				
-				self.send_response(200)
-				self.send_header("Content-type", 'text/html')
-				self.send_header("Content-Length", str(f.tell()))
-				self.end_headers()
-				f.seek(0)
-				return f
-			except IOError:
-				self.send_error(404, "File not found")
-				return None
 
 	def list_directory(self, path):
-		"""Helper to produce a directory listing (absent index.html).
-
-		Return value is either a file object, or None (indicating an
-		error).  In either case, the headers are sent, making the
-		interface the same as for send_head().
-
-		"""
 		try:
 			list = filter(lambda s:not s.startswith('.'), os.listdir(path))
 		except os.error:
 			self.send_error(404, "No permission to list directory")
 			return None
-		list.sort(key=lambda a: a.lower())
+		list.sort(key=lambda a: (' ' if os.path.isdir(a) else '') + a.lower())
 		f = StringIO()
 		displaypath = cgi.escape(urllib.unquote(self.path))
 		f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
@@ -167,8 +161,9 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			if os.path.islink(fullname):
 				displayname = name + "@"
 				# Note: a link to a directory displays with @ and links with /
+			isdir = os.path.isdir(fullname)
 			f.write('<li><a href="%s"%s>%s</a>\n'
-					% (urllib.quote(linkname), '' if os.path.isdir(fullname) else ' target="_blank"', cgi.escape(displayname)))
+					% (urllib.quote(linkname) + ('' if isdir else '~editor'), '' if isdir else ' target="_blank"', cgi.escape(displayname)))
 		f.write("</ul>\n<hr>\n</body>\n</html>\n")
 		length = f.tell()
 		f.seek(0)

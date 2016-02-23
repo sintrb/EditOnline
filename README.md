@@ -1,5 +1,5 @@
 # EditOnline
-A online file editor by Python.
+A online file editor by Python base on Ace.js.
 
 ## How to use
 1.run command: python EditOnline.py

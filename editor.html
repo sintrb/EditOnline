@@ -27,7 +27,19 @@
       z-index: 1000;
       background: white;
       opacity: 0.9;
-      /*display: none;*/
+      display: none;
+    }
+    #help {
+      margin: 0;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 2000;
+      background: white;
+      /*opacity: 0.9;*/
+      display: none;
     }
     .doingtext{
       margin: 100px auto; text-align: center;
@@ -42,16 +54,23 @@
   </style>
 </head>
 <body>
-  <pre id="editor">{{source}}</pre>
+  <pre id="editor"></pre>
   <div id="doing">
-    <div style="" class="doingtext">
+    <div class="doingtext">
+
+    </div>
+  </div>
+
+  <div id="help">
+    <div class="doingtext">
       EditOnline {{version}}
       <br/>
-      Press Ctrl+S To Save File.
+      <strong>Ctrl+S</strong> : Save File
+      <br/>
+      <strong>Ctrl+H</strong> : Show Help Info
       <br/>
       <div style="text-align:right; padding-right:20px;">
-        <!-- <a href="javascript:done();">Don't Display</a> -->
-        <a href="javascript:done();">Close</a>
+        <a href="javascript:$('#help').hide();">Close</a>
       </div>
     </div>
   </div>
@@ -63,25 +82,54 @@
     html:'html',
     py:'python',
     json:'json',
+    c:'C',
+    cpp:'C++'
   };
+  var exists = {{exists}};
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/twilight");
   $(function(){
     var mode = "ace/mode/text";
-    var ix = window.location.pathname.lastIndexOf('.');
+    var pathname = window.location.pathname.replace('~editor','')
+    var ix = pathname.lastIndexOf('.');
     if(ix>0){
-      var suf = window.location.pathname.substr(ix+1);
+      var suf = pathname.substr(ix+1);
       if(mimemap[suf]){
         mode = "ace/mode/"+mimemap[suf];
       }
     }
 
     editor.session.setMode(mode);
+    if(exists){
+      doing("loading...");
+      $.ajax({
+        url:window.location.href.replace('~editor',''),
+        dataType:'text',
+        cache: false,
+        success:function(data){
+          // done();
+          editor.setValue(data, 1);
+          toast("load success!");
+        },
+        error:function(e) {
+          toast("load failed!", 3000);
+        }
+      });
+    }
+    else{
+      $('#help').show();
+    }
   });
 
   $(document).keydown(function(e){
     if( e.ctrlKey  == true && e.keyCode == 83 ){
+      // Ctrl+S
       save();
+      return false;
+    }
+    else if( e.ctrlKey  == true && e.keyCode == 72 ){
+      // Ctrl+H
+      $('#help').toggle();
       return false;
     }
   });
@@ -95,6 +143,11 @@
     $("#doing").hide();
   }
 
+  function toast(t,tm) {
+    doing(t);
+    setTimeout(done, tm?tm:1000);
+  }
+
   function save(){
     doing('saving...');
      $.ajax({
@@ -102,12 +155,10 @@
       data: editor.getValue(),
       contentType: "string",
       success: function (data) {
-        doing('save success!');
-        setTimeout(done, 1500);
+        toast('save success!');
       },
       error:function(r){
-        doing("save failed!");
-        setTimeout(done, 3000);
+        toast("save failed!",3000);
       }
     })
   }
