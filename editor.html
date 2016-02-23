@@ -82,6 +82,7 @@
     html:'html',
     py:'python',
     json:'json',
+    text:'text',
     c:'C',
     cpp:'C++'
   };
@@ -151,6 +152,7 @@
   function save(){
     doing('saving...');
      $.ajax({
+      url:window.location.href.replace('~editor',''),
       type: "POST",
       data: editor.getValue(),
       contentType: "string",
