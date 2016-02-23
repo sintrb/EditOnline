@@ -162,8 +162,13 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				displayname = name + "@"
 				# Note: a link to a directory displays with @ and links with /
 			isdir = os.path.isdir(fullname)
-			f.write('<li><a href="%s"%s>%s</a>\n'
-					% (urllib.quote(linkname) + ('' if isdir else '~editor'), '' if isdir else ' target="_blank"', cgi.escape(displayname)))
+			l1 = '<a href="%s">%s</a>'%(urllib.quote(linkname), cgi.escape(displayname));
+			l2 = '<a href="%s~editor" target="_blank">edit</a>'%(urllib.quote(linkname));
+			if isdir:
+				li = '<li>%s</li>'%l1
+			else:
+				li = '<li>%s [%s]</li>'%(l1, l2)
+			f.write(li)
 		f.write("</ul>\n<hr>\n</body>\n</html>\n")
 		length = f.tell()
 		f.seek(0)
