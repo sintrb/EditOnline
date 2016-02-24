@@ -9,7 +9,7 @@ This module refer to SimpleHTTPServer
 """
 
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 import os
 import posixpath
@@ -278,7 +278,7 @@ def start():
 	print "Serving HTTP on", sa[0], "port", sa[1], "..."
 	httpd.serve_forever()
 
-if __name__ == '__main__':
+def main():
 	import getopt
 	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:h:d")
 	for opt, arg in opts:
@@ -300,3 +300,5 @@ if __name__ == '__main__':
 	if len(args) > 0:
 		options['port'] = int(args[0])
 	start()
+if __name__ == '__main__':
+	main()

@@ -1,32 +1,26 @@
 # -*- coding: utf-8 -*-
-import os
-import io
+import os, io
 from setuptools import setup
-from setuptools import find_packages
 
-from EditOnline import __version__
-
+from EditOnline.EditOnline import __version__
 here = os.path.abspath(os.path.dirname(__file__))
-
+README = io.open(os.path.join(here, 'README.rst'), encoding='UTF-8').read()
+CHANGES = io.open(os.path.join(here, 'CHANGES.rst'), encoding='UTF-8').read()
 setup(name='EditOnline',
       version=__version__,
       description='A simple online file editor by Python base on Ace.js.',
+      long_description=README + '\n\n' + CHANGES,
       url='https://github.com/sintrb/EditOnline',
       classifiers=[
           'Intended Audience :: Developers',
-          'License :: Apache License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.7',
           'Topic :: Software Development :: Libraries :: Python Modules',
       ],
-      keywords='EditOnline',
+      keywords='EditOnline Ace.js',
       author='sintrb',
-      author_email='lxneng@gmail.com',
+      author_email='sintrb@gmail.com',
       license='Apache',
-      # packages=find_packages('../'),
-      py_modules = ['EditOnline'],
-      # data_files = [('static', ['static']), ('editor.html',['editor.html'])],
-      package_data = {'': ['*.html'], 'static': ['*.js']},
-      # package_dir={'': '.'},
+      packages=['EditOnline'],
       include_package_data=True,
       zip_safe=False)
