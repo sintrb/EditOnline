@@ -38,7 +38,7 @@ options = {
 class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	server_version = "EditOnline/" + __version__
 	protocol_version = "HTTP/1.1"
-	
+	editortmpl = ''
 	def check_auth(self):
 		if not options.get('auth'):
 			return True
@@ -101,30 +101,32 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		f = None
 		# print self.path
 		if self.path.endswith('~editor'):
-			editortmpp = os.path.join(libdir, 'editor.html')
-			try:
-				res = ''.join(open(editortmpp).readlines())
-				cxt = {
-					'path':self.path,
-					'version':__version__,
-					'exists':'true' if os.path.exists(self.translate_path(self.path.replace('~editor', ''))) else 'false',
-					}
-				
-				for k, v in cxt.items():
-					res = res.replace('{{%s}}' % k, v)
+			editortmplfile = os.path.join(libdir, 'editor.html')
+			if not EditOnlineRequestHandler.editortmpl:
+				try:	
+					EditOnlineRequestHandler.editortmpl = ''.join(open(editortmplfile).readlines())
+				except IOError:
+					self.send_error(500, "The editor template file(%s) not found. Maybe need reinstall EditOnline"%editortmplfile)
+					return None
+			cxt = {
+				'path':self.path,
+				'version':__version__,
+				'realm':options.get('realm') or '',
+				'exists':'true' if os.path.exists(self.translate_path(self.path.replace('~editor', ''))) else 'false',
+				}
+			res = EditOnlineRequestHandler.editortmpl
+			for k, v in cxt.items():
+				res = res.replace('{{%s}}' % k, v)
 
-				f = StringIO()
-				f.write(res)
-				
-				self.send_response(200)
-				self.send_header("Content-type", 'text/html')
-				self.send_header("Content-Length", str(f.tell()))
-				self.end_headers()
-				f.seek(0)
-				return f
-			except IOError:
-				self.send_error(404, "Editor Template File(%s) Not Found")
-				return None
+			f = StringIO()
+			f.write(res)
+			
+			self.send_response(200)
+			self.send_header("Content-type", 'text/html')
+			self.send_header("Content-Length", str(f.tell()))
+			self.end_headers()
+			f.seek(0)
+			return f
 		elif os.path.isdir(path):
 			parts = urlparse.urlsplit(self.path)
 			if not parts.path.endswith('/'):
@@ -281,7 +283,7 @@ def start():
 
 def main():
 	import getopt
-	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:h:d:")
+	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:hd:")
 	for opt, arg in opts:
 		if opt == '-u':
 			options['username'] = arg
@@ -292,7 +294,8 @@ def main():
 		elif opt == '-d':
 			options['workdir'] = arg
 		elif opt == '-h':
-			print 'EditOnline [-u username] [-p password] [-r realm] [-d workdir]'
+			print 'Usage: python -m EditOnline [-u username] [-p password] [-r realm] [-d workdir] [port]'
+			print 'Report bugs to <sintrb@gmail.com>'
 			exit()
 
 	if options.get('username') and options.get('password'):
