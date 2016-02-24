@@ -76,20 +76,27 @@
       </div>
     </div>
   </div>
-  <script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
-  <script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
-<!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.js" type="text/javascript" charset="utf-8"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script> -->
+<!--   <script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script> -->
+
+  <!-- user cdnjs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script>
 
 <script type="text/javascript">
   var mimemap = {
     js:'javascript',
-    html:'html',
     py:'python',
-    json:'json',
-    text:'text',
+    el:'erlang',
+    pl:'perl',
+    m:'objectivec',
+    cs:'csharp',
+    rb:'ruby',
+    go:'golang',
+    h:'c_cpp',
     c:'c_cpp',
-    cpp:'c__cpp'
+    cpp:'c__cpp',
+    bat:'batchfile'
   };
   var exists = {{exists}};
   var editor = ace.edit("editor");
@@ -103,6 +110,9 @@
       suf = pathname.substr(ix+1);
       if(mimemap[suf]){
         mode = "ace/mode/"+mimemap[suf];
+      }
+      else{
+        mode = "ace/mode/"+suf;
       }
     }
 

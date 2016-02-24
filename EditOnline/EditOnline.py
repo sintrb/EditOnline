@@ -9,7 +9,7 @@ This module refer to SimpleHTTPServer
 """
 
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 import os
 import posixpath
@@ -101,8 +101,9 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		f = None
 		# print self.path
 		if self.path.endswith('~editor'):
+			editortmpp = os.path.join(libdir, 'editor.html')
 			try:
-				res = ''.join(open(os.path.join(libdir, 'editor.html')).readlines())
+				res = ''.join(open(editortmpp).readlines())
 				cxt = {
 					'path':self.path,
 					'version':__version__,
@@ -122,7 +123,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				f.seek(0)
 				return f
 			except IOError:
-				self.send_error(404, "File not found")
+				self.send_error(404, "Editor Template File(%s) Not Found")
 				return None
 		elif os.path.isdir(path):
 			parts = urlparse.urlsplit(self.path)
@@ -280,7 +281,7 @@ def start():
 
 def main():
 	import getopt
-	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:h:d")
+	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:h:d:")
 	for opt, arg in opts:
 		if opt == '-u':
 			options['username'] = arg
