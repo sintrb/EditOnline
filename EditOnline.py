@@ -2,15 +2,14 @@
 '''
 @author: sintrb
 '''
-"""Simple HTTP Server.
+"""EditOnline Server.
 
-This module builds on BaseHTTPServer by implementing the standard GET
-and HEAD requests in a fairly straightforward manner.
+This module refer to SimpleHTTPServer
 
 """
 
 
-__version__ = "0.1"
+__version__ = "0.1.2"
 
 import os
 import posixpath
@@ -29,9 +28,34 @@ except ImportError:
 
 libdir = os.path.dirname(__file__)
 
+options = {
+		'workdir':os.getcwd()
+		}
+
+
+
+
 class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	server_version = "EditOnline/" + __version__
+	protocol_version = "HTTP/1.1"
+	
+	def check_auth(self):
+		if not options.get('auth'):
+			return True
+		au = self.headers.getheader('authorization')
+		if au and len(au) > 6 and au.endswith(options.get('auth')):
+			return True
+		self.send_response(401, "Unauthorized")
+		self.send_header("Content-Type", "text/html")
+		self.send_header("WWW-Authenticate", 'Basic realm="%s"' % (options.get('realm') or self.server_version))
+		self.send_header('Connection', 'close')
+		self.end_headers()
+		return False
+	
 	def do_GET(self):
+		if not self.check_auth():
+			return
+		
 		f = self.send_head()
 		if f:
 			try:
@@ -40,11 +64,14 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				f.close()
 
 	def do_POST(self):
+		if not self.check_auth():
+			return
+		
 		self.path = self.path.replace('..', '')
 
 		length = int(self.headers.getheader('content-length'))
 		body = self.rfile.read(length)
-		path = self.translate_path(self.path).replace('~editor','')
+		path = self.translate_path(self.path).replace('~editor', '')
 		if not os.path.exists(os.path.dirname(path)):
 			os.makedirs(os.path.dirname(path))
 		try:
@@ -79,7 +106,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				cxt = {
 					'path':self.path,
 					'version':__version__,
-					'exists':'true' if os.path.exists(self.translate_path(self.path.replace('~editor',''))) else 'false',
+					'exists':'true' if os.path.exists(self.translate_path(self.path.replace('~editor', ''))) else 'false',
 					}
 				
 				for k, v in cxt.items():
@@ -162,12 +189,12 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				displayname = name + "@"
 				# Note: a link to a directory displays with @ and links with /
 			isdir = os.path.isdir(fullname)
-			l1 = '<a href="%s">%s</a>'%(urllib.quote(linkname), cgi.escape(displayname));
-			l2 = '<a href="%s~editor" target="_blank">edit</a>'%(urllib.quote(linkname));
+			l1 = '<a href="%s">%s</a>' % (urllib.quote(linkname), cgi.escape(displayname));
+			l2 = '<a href="%s~editor" target="_blank">edit</a>' % (urllib.quote(linkname));
 			if isdir:
-				li = '<li>%s</li>'%l1
+				li = '<li>%s</li>' % l1
 			else:
-				li = '<li>%s [%s]</li>'%(l1, l2)
+				li = '<li>%s [%s]</li>' % (l1, l2)
 			f.write(li)
 		f.write("</ul>\n<hr>\n</body>\n</html>\n")
 		length = f.tell()
@@ -195,7 +222,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		path = posixpath.normpath(urllib.unquote(path))
 		words = path.split('/')
 		words = filter(None, words)
-		path = os.getcwd()
+		path = options.get('workdir')
 		for word in words:
 			drive, word = os.path.splitdrive(word)
 			head, word = os.path.split(word)
@@ -242,12 +269,34 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def copyfile(self, source, outputfile):
 		shutil.copyfileobj(source, outputfile)
 
-def test(HandlerClass=EditOnlineRequestHandler, ServerClass=BaseHTTPServer.HTTPServer):
-	BaseHTTPServer.test(HandlerClass, ServerClass)
+def start():
+	port = options['port'] if 'port' in options else 8000
+	server_address = ('', port)
+	httpd = BaseHTTPServer.HTTPServer(server_address, EditOnlineRequestHandler)
+	sa = httpd.socket.getsockname()
+	print "Root Directory: %s" % options.get('workdir')
+	print "Serving HTTP on", sa[0], "port", sa[1], "..."
+	httpd.serve_forever()
 
 if __name__ == '__main__':
-	test()
+	import getopt
+	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:h:d")
+	for opt, arg in opts:
+		if opt == '-u':
+			options['username'] = arg
+		elif opt == '-p':
+			options['password'] = arg
+		elif opt == '-r':
+			options['realm'] = arg
+		elif opt == '-d':
+			options['workdir'] = arg
+		elif opt == '-h':
+			print 'EditOnline [-u username] [-p password] [-r realm] [-d workdir]'
+			exit()
 
-
-
-
+	if options.get('username') and options.get('password'):
+		import base64
+		options['auth'] = base64.b64encode('%s:%s' % (options.get('username'), options.get('password')))
+	if len(args) > 0:
+		options['port'] = int(args[0])
+	start()

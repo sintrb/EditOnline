@@ -67,34 +67,40 @@
       <br/>
       <strong>Ctrl+S</strong> : Save File
       <br/>
+      <strong>Ctrl+Shif+N</strong> : New File
+      <br/>
       <strong>Ctrl+H</strong> : Show Help Info
       <br/>
       <div style="text-align:right; padding-right:20px;">
-        <a href="javascript:$('#help').hide();">Close</a>
+        <a href="javascrpt:void();" onclick="$('#help').hide();">Close</a>
       </div>
     </div>
   </div>
-<script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
-<script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
-<script>
+  <script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
+<!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script> -->
+
+<script type="text/javascript">
   var mimemap = {
     js:'javascript',
     html:'html',
     py:'python',
     json:'json',
     text:'text',
-    c:'C',
-    cpp:'C++'
+    c:'c_cpp',
+    cpp:'c__cpp'
   };
   var exists = {{exists}};
   var editor = ace.edit("editor");
+  var suf = "";
   editor.setTheme("ace/theme/twilight");
   $(function(){
     var mode = "ace/mode/text";
     var pathname = window.location.pathname.replace('~editor','')
     var ix = pathname.lastIndexOf('.');
     if(ix>0){
-      var suf = pathname.substr(ix+1);
+      suf = pathname.substr(ix+1);
       if(mimemap[suf]){
         mode = "ace/mode/"+mimemap[suf];
       }
@@ -123,6 +129,7 @@
   });
 
   $(document).keydown(function(e){
+    // console.log(e);
     if( e.ctrlKey  == true && e.keyCode == 83 ){
       // Ctrl+S
       save();
@@ -131,6 +138,11 @@
     else if( e.ctrlKey  == true && e.keyCode == 72 ){
       // Ctrl+H
       $('#help').toggle();
+      return false;
+    }
+    else if( e.ctrlKey  && e.shiftKey && e.keyCode == 78){
+      // Ctrl+Shif+N
+      newfile();
       return false;
     }
   });
@@ -163,6 +175,17 @@
         toast("save failed!",3000);
       }
     })
+  }
+
+  function newfile(){
+    var path = window.location.pathname.replace("~editor","")
+    var name = path.substr(path.lastIndexOf('/')+1);
+    var dirpath = path.substr(0,path.lastIndexOf('/')+1);
+    name = prompt("New File", name);
+    if(name){
+      var npath = dirpath+name+"~editor";
+      window.open(npath);
+    }
   }
 </script>
 
