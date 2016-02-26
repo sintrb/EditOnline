@@ -14,6 +14,8 @@ __version__ = "0.1.4"
 import os
 import posixpath
 import BaseHTTPServer
+import SocketServer
+import socket
 import urllib
 import urlparse
 import cgi
@@ -124,6 +126,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.send_response(200)
 			self.send_header("Content-type", 'text/html')
 			self.send_header("Content-Length", str(f.tell()))
+			self.send_header('Connection', 'close')
 			self.end_headers()
 			f.seek(0)
 			return f
@@ -136,6 +139,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 							 parts[3], parts[4])
 				new_url = urlparse.urlunsplit(new_parts)
 				self.send_header("Location", new_url)
+				self.send_header('Connection', 'close')
 				self.end_headers()
 				return None
 			else:
@@ -162,6 +166,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				fs = os.fstat(f.fileno())
 				self.send_header("Content-Length", str(fs[6]))
 				self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+				self.send_header('Connection', 'close')
 				self.end_headers()
 				return f
 			except:
@@ -206,6 +211,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		encoding = sys.getfilesystemencoding()
 		self.send_header("Content-type", "text/html; charset=%s" % encoding)
 		self.send_header("Content-Length", str(length))
+		self.send_header('Connection', 'close')
 		self.end_headers()
 		return f
 
@@ -272,10 +278,20 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def copyfile(self, source, outputfile):
 		shutil.copyfileobj(source, outputfile)
 
+
+class ThreadingHTTPServer(SocketServer.ThreadingTCPServer):
+	allow_reuse_address = 1    # Seems to make sense in testing environment
+	def server_bind(self):
+		"""Override server_bind to store the server name."""
+		SocketServer.TCPServer.server_bind(self)
+		host, port = self.socket.getsockname()[:2]
+		self.server_name = socket.getfqdn(host)
+		self.server_port = port
+
 def start():
 	port = options['port'] if 'port' in options else 8000
 	server_address = ('', port)
-	httpd = BaseHTTPServer.HTTPServer(server_address, EditOnlineRequestHandler)
+	httpd = ThreadingHTTPServer(server_address, EditOnlineRequestHandler)
 	sa = httpd.socket.getsockname()
 	print "Root Directory: %s" % options.get('workdir')
 	print "Serving HTTP on", sa[0], "port", sa[1], "..."
