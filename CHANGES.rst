@@ -17,3 +17,11 @@
 	2.fix working directory(-d) option bug
 	
 	3.change to use cdnjs static resource
+
+0.1.5
+
+	1.ThreadingHTTPServer
+
+	2.use static resource, because the cdnjs is to slow in China
+
+
