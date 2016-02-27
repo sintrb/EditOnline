@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*
 '''
 @author: sintrb
@@ -31,7 +32,9 @@ except ImportError:
 libdir = os.path.dirname(__file__)
 
 options = {
-		'workdir':os.getcwd()
+		'workdir':os.getcwd(),
+		'bind':'0.0.0.0',
+		'port':8000
 		}
 
 
@@ -290,7 +293,7 @@ class ThreadingHTTPServer(SocketServer.ThreadingTCPServer):
 
 def start():
 	port = options['port'] if 'port' in options else 8000
-	server_address = ('', port)
+	server_address = (options['bind'], options['port'])
 	httpd = ThreadingHTTPServer(server_address, EditOnlineRequestHandler)
 	sa = httpd.socket.getsockname()
 	print "Root Directory: %s" % options.get('workdir')
@@ -310,7 +313,7 @@ def main():
 		elif opt == '-d':
 			options['workdir'] = arg
 		elif opt == '-h':
-			print 'Usage: python -m EditOnline [-u username] [-p password] [-r realm] [-d workdir] [port]'
+			print 'Usage: python -m EditOnline [-u username] [-p password] [-r realm] [-d workdir] [bindaddress:port | port]'
 			print 'Report bugs to <sintrb@gmail.com>'
 			exit()
 
@@ -318,7 +321,13 @@ def main():
 		import base64
 		options['auth'] = base64.b64encode('%s:%s' % (options.get('username'), options.get('password')))
 	if len(args) > 0:
-		options['port'] = int(args[0])
+		bp = args[0]
+		if ':' in bp:
+			options['bind'] = bp[0:bp.index(':')]
+			options['port'] = int(bp[bp.index(':')+1:])
+		else:
+			options['bind'] = '0.0.0.0'
+			options['port'] = int(bp)
 	start()
 if __name__ == '__main__':
 	main()

@@ -1,27 +1,62 @@
-# EditOnline
+EditOnline
+===============
+A simple online text file editor base on Ace.js.
 
-A simple online file editor by Python base on Ace.js.
+Install
+===============
+::
 
-## How To Use
+ pip install EditOnline
 
-0. cd to you working dir
 
-1. run command: python -m EditOnline
+Use
+===============
+cd to you working directory and run command:
 
-2. use broswer open 'http://127.0.0.1:8000'
+::
+
+ EditOnline
+
+on Windows use:
+::
+
+ EditOnline.bat
+
+if can't find EditOnline command, try:
+::
+
+ python -m EditOnline
+
+
+open broswer with url **http://127.0.0.1:8000**
 	
-in broswer editor:
 
-- Ctrl+S : save file
+Editor shortcut
+===============
+- **Ctrl+S** : save file
 
-- Ctrl+Shif+N : new file
+- **Ctrl+Shif+N** : new file
 
-- Ctrl+H : show help info
+- **Ctrl+H** : show help info
 
-## Other
+Other tips
+===============
+1.set http port 80
+::
 
-- set http port 80: python -m EditOnline 80
+ EditOnline 80
 
-- authenticate with username and password (admin admin): python -m EditOnline -u admin -p admin
+2.authenticate with username and password (admin admin)
+::
 
-- set the working directory (/tmp): python -m EditOnline -d /tmp
+ EditOnline -u admin -p admin
+
+3.set the working directory (/tmp)
+::
+
+ EditOnline -d /tmp
+
+4.bind address with 127.0.0.1
+::
+
+ EditOnline 127.0.0.1:8000
