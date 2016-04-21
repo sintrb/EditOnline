@@ -10,7 +10,7 @@ This module refer to SimpleHTTPServer
 """
 
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 import os
 import posixpath
@@ -30,6 +30,8 @@ except ImportError:
 	from StringIO import StringIO
 
 libdir = os.path.dirname(__file__)
+if not libdir:
+    libdir = os.getcwd()
 
 options = {
 		'workdir':os.getcwd(),

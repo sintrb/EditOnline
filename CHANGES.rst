@@ -24,3 +24,8 @@ CHANGES
 - 2.import **static** resource to avoid the slow speed of cdnjs in China, then the EditOnline size increased >.<
 - 3.bind address support, see **-h**
 - 4.add EditOnline.py to scripts
+
+0.1.6
+
+- 1.fix libdir bug
+- 2.change package info

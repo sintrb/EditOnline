@@ -1,3 +1,2 @@
 include *.rst
-recursive-include EditOnline *.txt *.html
-
+recursive-include EditOnline *.*
