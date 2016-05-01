@@ -31,7 +31,7 @@ except ImportError:
 
 libdir = os.path.dirname(__file__)
 if not libdir:
-    libdir = os.getcwd()
+	libdir = os.getcwd()
 
 options = {
 		'workdir':os.getcwd(),
