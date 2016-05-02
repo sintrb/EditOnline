@@ -69,10 +69,10 @@
       <br/>
       <strong>Ctrl+Shif+N</strong> : New File
       <br/>
-      <strong>Ctrl+H</strong> : Show Help Info
+      <strong>Ctrl+H/Ctrl-Shift-H</strong> : Show Help Info
       <br/>
       <div style="text-align:right; padding-right:20px;">
-        <a href="javascrpt:void();" onclick="$('#help').hide();">Close</a>
+        <a href="javascrpt:void();" onclick="$('#help').hide();return false;">Close</a>
       </div>
     </div>
   </div>
@@ -115,7 +115,7 @@
         mode = "ace/mode/"+suf;
       }
     }
-
+    editor.commands.bindKey( 'Ctrl-shift-H', help );
     editor.session.setMode(mode);
     if(exists){
       doing("loading...");
@@ -134,7 +134,7 @@
       });
     }
     else{
-      $('#help').show();
+      help();
     }
   });
 
@@ -145,9 +145,9 @@
       save();
       return false;
     }
-    else if( e.ctrlKey  == true && e.keyCode == 72 ){
+    else if( e.ctrlKey == true && e.keyCode == 72 ){
       // Ctrl+H
-      $('#help').toggle();
+      help();
       return false;
     }
     else if( e.ctrlKey  && e.shiftKey && e.keyCode == 78){
@@ -169,6 +169,10 @@
   function toast(t,tm) {
     doing(t);
     setTimeout(done, tm?tm:1000);
+  }
+  
+  function help() {
+    $('#help').toggle();
   }
 
   function save(){
