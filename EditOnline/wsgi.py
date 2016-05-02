@@ -72,7 +72,7 @@ def application(environ, start_response):
     handler = WSGIHandler(None, (environ['REMOTE_ADDR'], None), None)
 #     for k, v in environ.items():
 #         print k, v
-    handler.path = environ['PATH_INFO']
+    handler.path = environ['PATH_INFO'] + ('?' + environ['QUERY_STRING'] if environ['QUERY_STRING'] else '')
     handler.rfile = environ['wsgi.input']
     handler.headers = HeadsWarp(environ)
     handler.wfile = StringIO()

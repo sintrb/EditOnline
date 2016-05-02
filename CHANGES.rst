@@ -38,3 +38,7 @@ CHANGES
 0.1.9
 
 - 1.shell bug
+
+0.1.10
+
+- 1.fix wsgi bug
