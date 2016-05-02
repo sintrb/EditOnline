@@ -83,7 +83,9 @@ def application(environ, start_response):
         handler_method = getattr(handler, method)
         handler_method()
     handler.wfile.seek(0)
-    res = handler.wfile.read()
+    res = handler.wfile.read()[2:]
+    if res.startswith('\n\n'):
+        res = res[2:]
     if res:
         handler.send_header("Content-Length", str(len(res)))
     
