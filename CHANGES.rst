@@ -33,3 +33,8 @@ CHANGES
 0.1.7
 
 - 1.wsgi suport
+
+
+0.1.9
+
+- 1.shell bug
