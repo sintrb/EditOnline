@@ -305,7 +305,6 @@ def start():
 def config(argv):
 	import getopt
 	opts, args = getopt.getopt(argv, "u:p:r:hd:")
-	print argv
 	for opt, arg in opts:
 		if opt == '-u':
 			options['username'] = arg
