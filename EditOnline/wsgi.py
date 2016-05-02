@@ -85,6 +85,7 @@ def application(environ, start_response):
     handler.wfile.seek(0)
     res = handler.wfile.read()
     if res:
+        print str(len(res)), res
         handler.send_header("Content-Length", str(len(res)))
     
     status = '%s %s' % (handler.response_code or 200, handler.response_message or 'OK')
@@ -94,4 +95,4 @@ def application(environ, start_response):
 
     
 
-    return [res, "\n"]
+    return [res, ]
