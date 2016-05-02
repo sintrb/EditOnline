@@ -10,7 +10,7 @@ This module refer to SimpleHTTPServer
 """
 
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 import os
 import posixpath
@@ -113,7 +113,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				try:	
 					EditOnlineRequestHandler.editortmpl = ''.join(open(editortmplfile).readlines())
 				except IOError:
-					self.send_error(500, "The editor template file(%s) not found. Maybe need reinstall EditOnline"%editortmplfile)
+					self.send_error(500, "The editor template file(%s) not found. Maybe need reinstall EditOnline" % editortmplfile)
 					return None
 			cxt = {
 				'path':self.path,
@@ -285,7 +285,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 class ThreadingHTTPServer(SocketServer.ThreadingTCPServer):
-	allow_reuse_address = 1    # Seems to make sense in testing environment
+	allow_reuse_address = 1  # Seems to make sense in testing environment
 	def server_bind(self):
 		"""Override server_bind to store the server name."""
 		SocketServer.TCPServer.server_bind(self)
@@ -295,16 +295,17 @@ class ThreadingHTTPServer(SocketServer.ThreadingTCPServer):
 
 def start():
 	port = options['port'] if 'port' in options else 8000
-	server_address = (options['bind'], options['port'])
+	server_address = (options['bind'], port)
 	httpd = ThreadingHTTPServer(server_address, EditOnlineRequestHandler)
 	sa = httpd.socket.getsockname()
 	print "Root Directory: %s" % options.get('workdir')
 	print "Serving HTTP on", sa[0], "port", sa[1], "..."
 	httpd.serve_forever()
 
-def main():
+def config(argv):
 	import getopt
-	opts, args = getopt.getopt(sys.argv[1:], "u:p:r:hd:")
+	opts, args = getopt.getopt(argv, "u:p:r:hd:")
+	print argv
 	for opt, arg in opts:
 		if opt == '-u':
 			options['username'] = arg
@@ -326,10 +327,14 @@ def main():
 		bp = args[0]
 		if ':' in bp:
 			options['bind'] = bp[0:bp.index(':')]
-			options['port'] = int(bp[bp.index(':')+1:])
+			options['port'] = int(bp[bp.index(':') + 1:])
 		else:
 			options['bind'] = '0.0.0.0'
 			options['port'] = int(bp)
+
+def main():
+	config(sys.argv[1:])
 	start()
+	
 if __name__ == '__main__':
 	main()

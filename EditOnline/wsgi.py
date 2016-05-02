@@ -1,5 +1,5 @@
 """
-WSGI arp
+WSGI warp
 """
 
 import os
@@ -20,7 +20,7 @@ class HeadsWarp(object):
         name = name.upper().replace('-', '_')
         return self.environ.get('HTTP_%s' % (name), self.environ.get(name))
 
-class WSGIHandlerWarp(EditOnline.EditOnlineRequestHandler):
+class WSGIHandler(EditOnline.EditOnlineRequestHandler):
     path = None
     headers = None
     
@@ -63,9 +63,13 @@ class WSGIHandlerWarp(EditOnline.EditOnlineRequestHandler):
     @property
     def response_headers(self):
         return self.response_headermap.items()
-    
-def application(environ, start_response):
-    handler = WSGIHandlerWarp(None, (environ['REMOTE_ADDR'], None), None)
+
+if os.environ.get('WSGI_PARAMS'):
+    argv = [v.strip() for v in os.environ.get('WSGI_PARAMS').split(' ') if v.strip()]
+    EditOnline.config(argv)
+
+def application(environ, start_response):    
+    handler = WSGIHandler(None, (environ['REMOTE_ADDR'], None), None)
 #     for k, v in environ.items():
 #         print k, v
     handler.path = environ['PATH_INFO']
@@ -78,10 +82,16 @@ def application(environ, start_response):
     if hasattr(handler, method):
         handler_method = getattr(handler, method)
         handler_method()
+    handler.wfile.seek(0)
+    res = handler.wfile.read()
+    if res:
+        handler.send_header("Content-Length", str(len(res)))
+    
     status = '%s %s' % (handler.response_code or 200, handler.response_message or 'OK')
     headers = [(k, v) for k, v in handler.response_headers if not wsgiref.util.is_hop_by_hop(k)]
     
     start_response(status, headers)
-    handler.wfile.seek(0)
-    res = handler.wfile.read()
-    return res
+
+    
+
+    return [res, "\n"]

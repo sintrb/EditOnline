@@ -29,3 +29,7 @@ CHANGES
 
 - 1.fix libdir bug
 - 2.change package info
+
+0.1.7
+
+- 1.wsgi suport
