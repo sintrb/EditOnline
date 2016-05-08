@@ -8,6 +8,34 @@
     body {
       overflow: hidden;
     }
+    #header, #header-btn{
+      position: absolute;
+      background: white;
+      padding: 0;
+      margin: 0;
+      top: 0;
+      left: 0;
+      height: 25px;
+      line-height: 25px;
+      vertical-align: middle;
+    }
+    #header{
+      z-index: 10000;
+      width: 100%;
+      overflow: hidden;
+    }
+    #header-btn{
+      z-index: 20000;
+      width: 25px;
+      text-align: center;
+      opacity: 0.3;
+    }
+    #header-btn:hover{
+      background: gray;
+      color: red;
+      cursor: pointer;
+      opacity: 1;
+    }
     #editor {
       margin: 0;
       position: absolute;
@@ -51,9 +79,30 @@
       font-size: 20px;
       background:#00FF85;
     }
+    .buttons a{
+      text-decoration: none;
+      color: blue;
+    }
   </style>
 </head>
 <body>
+  <div id="header-btn" onclick="toggleHeader();">
+    =
+  </div>
+  <div id="header">
+    <label style="margin-left: 40px;" for="modes">Mode</label>
+    <select id="modes" size="1"></select>
+
+    <label for="themes">Theme</label>
+    <select id="themes" size="1" value="textmate"></select>
+
+    <div style='float:right'>
+      <button onclick="save();">Save</button>
+      <button onclick="newfile();">New</button>
+      <button onclick="help();">Help</button>
+    </div>
+    <span style="clear: both;"></span>
+  </div>
   <pre id="editor"></pre>
   <div id="doing">
     <div class="doingtext">
@@ -63,21 +112,23 @@
 
   <div id="help">
     <div class="doingtext">
-      EditOnline {{version}}
-      <br/>
-      <strong>Ctrl+S</strong> : Save File
-      <br/>
-      <strong>Ctrl+Shif+N</strong> : New File
-      <br/>
-      <strong>Ctrl+H/Ctrl-Shift-H</strong> : Show Help Info
-      <br/>
-      <div style="text-align:right; padding-right:20px;">
-        <a href="javascrpt:void();" onclick="$('#help').hide();return false;">Close</a>
+      <strong>EditOnline {{version}}</strong>
+      <div style="text-align: left; padding: 5px;">
+        <strong>Ctrl+Alt/Shift+S</strong>:Save This File
+        <br/>
+        <strong>Ctrl+Alt/Shift+N</strong>:Create New File
+        <br/>
+        <strong>Ctrl+Alt/Shift+H</strong>:Show This Help Info
+      </div>
+      <div style="text-align:right; padding-right:20px;" class="buttons">
+        <a href="https://github.com/sintrb/EditOnline" target="_blanl" style="font-size: 14px; margin-right: 20px;">GitHub</a>
+        <a href="javascrpt:void();" onclick="$('#help').hide();return false;">CLOSE</a>
       </div>
     </div>
   </div>
   <script src="/eo.static/jquery-v1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
   <script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/eo.static/config.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- user cdnjs -->
 <!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
@@ -115,8 +166,40 @@
         mode = "ace/mode/"+suf;
       }
     }
-    editor.commands.bindKey( 'Ctrl-shift-H', help );
+    editor.commands.bindKey('Ctrl+Alt+H|Ctrl+Shift+H', help);
+    editor.commands.bindKey('Ctrl+Alt+S|Ctrl+Shift+S', save);
+    editor.commands.bindKey('Ctrl+Alt+N|Ctrl+Shift+N', newfile);
+
     editor.session.setMode(mode);
+
+    var genOption = function(key,name){
+      return '<option value="'+key+'">'+name+'</option>';
+    }
+
+    var modeoptions = [];
+    for (var i = 0; i < config.modes.length; i++) {
+      var md = config.modes[i];
+      modeoptions.push(genOption(md.key,md.name));
+    }
+    $("#modes").html(modeoptions.join(""));
+    $("#modes").change(function(){
+      editor.session.setMode("ace/mode/"+$(this).val());
+    });
+
+    var themeoptions = [];
+    for (var i = 0; i < config.themegroups.length; i++) {
+      var tg = config.themegroups[i];
+      themeoptions.push('<optgroup label="'+tg.name+'">');
+      for (var j = 0; j < tg.themes.length; j++) {
+        var th = tg.themes[j];
+        themeoptions.push(genOption(th.key,th.name));
+      }
+    }
+    $("#themes").html(themeoptions.join(""));
+    $("#themes").change(function(){
+      editor.setTheme("ace/theme/"+$(this).val());
+    });
+
     if(exists){
       doing("loading...");
       $.ajax({
@@ -136,26 +219,23 @@
     else{
       help();
     }
+    setTimeout(function(){
+      toggleHeader();
+    }, 3000);
   });
 
-  $(document).keydown(function(e){
-    // console.log(e);
-    if( e.ctrlKey  == true && e.keyCode == 83 ){
-      // Ctrl+S
-      save();
-      return false;
+  function toggleHeader(){
+    if($("#header").width()!=0){
+      $("#header").stop().animate({
+        width:"0px"
+      });
     }
-    else if( e.ctrlKey == true && e.keyCode == 72 ){
-      // Ctrl+H
-      help();
-      return false;
+    else{
+      $("#header").stop().animate({
+        width: "100%"
+      });
     }
-    else if( e.ctrlKey  && e.shiftKey && e.keyCode == 78){
-      // Ctrl+Shif+N
-      newfile();
-      return false;
-    }
-  });
+  }
 
   function doing(t){
     $("#doing .doingtext").text(t);

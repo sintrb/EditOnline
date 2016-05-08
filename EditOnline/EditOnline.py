@@ -109,7 +109,7 @@ class EditOnlineRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		# print self.path
 		if self.path.endswith('~editor'):
 			editortmplfile = os.path.join(libdir, 'editor.html')
-			if not EditOnlineRequestHandler.editortmpl:
+			if not EditOnlineRequestHandler.editortmpl or True:
 				try:	
 					EditOnlineRequestHandler.editortmpl = ''.join(open(editortmplfile).readlines())
 				except IOError:
