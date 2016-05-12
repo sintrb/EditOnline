@@ -42,3 +42,8 @@ CHANGES
 0.1.10
 
 - 1.fix wsgi bug
+
+0.1.11
+
+- 1.short key change
+- 2.add toolbar

@@ -135,6 +135,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script> -->
 
 <script type="text/javascript">
+  function setStorage(k,v){
+    console.log(k,'=',v);
+    if(window.localStorage){
+      window.localStorage[k] = v;
+    }
+    else{
+      document.cookie = k + "="+ escape (v) + ";expires=" + (new Date((new Date()).getTime() + 30*24*60*60*1000)).toGMTString() + "; path=/";
+    }
+  }
+  function getStorage(k){
+    var v = '';
+    if(window.localStorage){
+      v = window.localStorage[k];
+    }
+    else{
+      var reg=new RegExp("(^| )"+k+"=([^;]*)(;|$)");
+      var arr=document.cookie.match(reg);
+      if(arr){
+        v=arr[2];
+      }
+    }
+    console.log(k,'=',v,'<=');
+    return v;
+  }
+  var genOption = function(key,name){
+    return '<option value="'+key+'">'+name+'</option>';
+  }
   var mimemap = {
     js:'javascript',
     py:'python',
@@ -147,35 +174,26 @@
     h:'c_cpp',
     c:'c_cpp',
     cpp:'c__cpp',
+    txt:'text',
     bat:'batchfile'
   };
   var exists = {{exists}};
   var editor = ace.edit("editor");
-  var suf = "";
-  editor.setTheme("ace/theme/twilight");
+
   $(function(){
-    var mode = "ace/mode/text";
-    var pathname = window.location.pathname.replace('~editor','')
+    var pathname = window.location.pathname.replace('~editor','');
     var ix = pathname.lastIndexOf('.');
-    if(ix>0){
-      suf = pathname.substr(ix+1);
-      if(mimemap[suf]){
-        mode = "ace/mode/"+mimemap[suf];
-      }
-      else{
-        mode = "ace/mode/"+suf;
-      }
-    }
+    var suf = ix>=0?pathname.substr(ix+1):"";
+    var mode = getStorage('mode_'+suf) || mimemap[suf] || (suf==''?'text':suf);
+    var theme = getStorage('theme') || 'clouds_midnight';
+
     editor.commands.bindKey('Ctrl+Alt+H|Ctrl+Shift+H', help);
     editor.commands.bindKey('Ctrl+Alt+S|Ctrl+Shift+S', save);
     editor.commands.bindKey('Ctrl+Alt+N|Ctrl+Shift+N', newfile);
 
     editor.session.setMode(mode);
 
-    var genOption = function(key,name){
-      return '<option value="'+key+'">'+name+'</option>';
-    }
-
+    // mode
     var modeoptions = [];
     for (var i = 0; i < config.modes.length; i++) {
       var md = config.modes[i];
@@ -183,9 +201,14 @@
     }
     $("#modes").html(modeoptions.join(""));
     $("#modes").change(function(){
-      editor.session.setMode("ace/mode/"+$(this).val());
+      var mode = $(this).val();
+      editor.session.setMode("ace/mode/"+mode);
+      setStorage('mode_'+suf, mode);
     });
+    $("#modes").val(mode);
+    editor.session.setMode("ace/mode/"+mode);
 
+    // theme
     var themeoptions = [];
     for (var i = 0; i < config.themegroups.length; i++) {
       var tg = config.themegroups[i];
@@ -197,8 +220,12 @@
     }
     $("#themes").html(themeoptions.join(""));
     $("#themes").change(function(){
-      editor.setTheme("ace/theme/"+$(this).val());
+      var theme = $(this).val();
+      editor.setTheme("ace/theme/"+theme);
+      setStorage('theme', theme);
     });
+    $("#themes").val(theme);
+    editor.setTheme("ace/theme/"+theme);
 
     if(exists){
       doing("loading...");
@@ -221,7 +248,7 @@
     }
     setTimeout(function(){
       toggleHeader();
-    }, 3000);
+    }, 5000);
   });
 
   function toggleHeader(){
