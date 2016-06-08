@@ -50,5 +50,8 @@ CHANGES
 
 0.1.12
 
+- 1.short key help
+
+0.1.13
+
 - 1.fix 401 bug
-- 2.short key help
