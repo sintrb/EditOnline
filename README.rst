@@ -33,11 +33,11 @@ open broswer with url **http://127.0.0.1:8000**
 
 Editor shortcut
 ===============
-- **Ctrl+S** : save file
+- **Ctrl+Alt/Shift+S** : Save This File
+ 
+- **Ctrl+Alt/Shift+N** : Create New File 
 
-- **Ctrl+Shif+N** : new file
-
-- **Ctrl+H** : show help info
+- **Ctrl+Alt/Shift+H** : Show This Help Info
 
 Other tips
 ===============

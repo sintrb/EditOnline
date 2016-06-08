@@ -47,3 +47,8 @@ CHANGES
 
 - 1.short key change
 - 2.add toolbar
+
+0.1.12
+
+- 1.fix 401 bug
+- 2.short key help
