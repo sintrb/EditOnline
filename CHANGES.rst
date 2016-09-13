@@ -55,3 +55,7 @@ CHANGES
 0.1.13
 
 - 1.fix 401 bug
+
+0.1.14
+
+- 1.add fontsize set

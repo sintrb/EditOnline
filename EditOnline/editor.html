@@ -96,6 +96,20 @@
     <label for="themes">Theme</label>
     <select id="themes" size="1" value="textmate"></select>
 
+    <label for="fontsize">Font Size</label>
+    <select id="fontsize">
+      <option value="12">12</option>
+      <option value="14">14</option>
+      <option value="16">16</option>
+      <option value="18">18</option>
+      <option value="20">20</option>
+      <option value="24">24</option>
+      <option value="30">30</option>
+      <option value="36">36</option>
+      <option value="48">48</option>
+      <option value="64">64</option>
+    </select>
+
     <div style='float:right'>
       <button onclick="save();">Save</button>
       <button onclick="newfile();">New</button>
@@ -130,7 +144,7 @@
   <script src="/eo.static/ace.js" type="text/javascript" charset="utf-8"></script>
   <script src="/eo.static/config.js" type="text/javascript" charset="utf-8"></script>
 
-  <!-- user cdnjs -->
+  <!-- use cdnjs -->
 <!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script> -->
 
@@ -226,6 +240,19 @@
     });
     $("#themes").val(theme);
     editor.setTheme("ace/theme/"+theme);
+
+    $("#fontsize").change(function(){
+      var fontsize = parseInt($(this).val());
+      editor.setFontSize(fontsize);
+      setStorage('fontsize', fontsize);
+    });
+    var fontsize = getStorage("fontsize");
+    if(fontsize=='')
+      fontsize = 12;
+    else
+      fontsize = parseInt(fontsize);
+    $("#fontsize").val(""+fontsize);
+    editor.setFontSize(fontsize);
 
     if(exists){
       doing("loading...");
